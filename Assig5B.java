@@ -4,38 +4,63 @@
  * Randall Rood
  * CST 338
  * 10/1/16
- * Module 5: GUI Cards
+ * Module 5: GUI Cards - Phase Two
  */
 
 import javax.swing.*;
+import java.awt.*;
 import java.lang.Math;
-
 
 public class Assig5B {
    
-   static int NUM_CARDS_PER_HAND = 7;
-   static int NUM_PLAYERS = 2;
+   static final int NUM_CARDS_PER_HAND = 7;
+   static final int NUM_PLAYERS = 2;
    static JLabel[] computerLabels = new JLabel[NUM_CARDS_PER_HAND];
    static JLabel[] humanLabels = new JLabel[NUM_CARDS_PER_HAND];  
    static JLabel[] playedCardLabels  = new JLabel[NUM_PLAYERS]; 
    static JLabel[] playLabelText  = new JLabel[NUM_PLAYERS]; 
 
    public static void main(String[] args) {
-      // Set up JFrame
+      // Create the game window
+      CardTable table = new CardTable("High Card",NUM_CARDS_PER_HAND,NUM_PLAYERS);
       
-      // Create labels for each player
+      // Set up the card images
+      new GUICard();
       
-      // Add labels to the panels
-      // Use GridLayout to lay out the cards nicely
+      // Create the card deck and shuffle
+      Deck deck = new Deck(1);
+      deck.shuffle();
       
-      // Pick 2 random cards to display in the middle for now using generateRandomCard()
+      // Deal cards and display on table
+      Hand playerHand = new Hand();
+      Hand computerHand = new Hand();
+      for (int i = 0; i < NUM_CARDS_PER_HAND; i++) {
+         // Deal to human player and put card image on table
+         playerHand.takeCard(deck.dealCard());
+         humanLabels[i] = new JLabel(GUICard.getIcon(playerHand.inspectCard(i)));
+         table.pnlHumanHand.add(humanLabels[i]);
+         
+         // Deal to computer and put card back image on table
+         computerHand.takeCard(deck.dealCard());
+         computerLabels[i] = new JLabel(GUICard.getBackCardIcon());
+         table.pnlComputerHand.add(computerLabels[i]);
+      }
+      
+      // Put 2 cards in the play area just see we can see what it looks like
+      playedCardLabels[0] = new JLabel(GUICard.getIcon(deck.dealCard()));
+      playedCardLabels[1] = new JLabel(GUICard.getIcon(deck.dealCard())); 
+      table.pnlPlayArea.add(playedCardLabels[0]);
+      table.pnlPlayArea.add(playedCardLabels[1]);
+      
+      // Label the play area cards
+      playLabelText[0] = new JLabel("Computer",JLabel.CENTER);
+      playLabelText[1] = new JLabel("You",JLabel.CENTER);
+      table.pnlPlayArea.add(playLabelText[0]);
+      table.pnlPlayArea.add(playLabelText[1]);
       
       // Show the window
+      table.setVisible(true);
    }
-   
-   //static Card generateRandomCard() {
-      // Return a new random Card for the main to use for its game
-  // }
 }
 
 class CardTable extends JFrame {
@@ -48,23 +73,55 @@ class CardTable extends JFrame {
       public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
       
       public CardTable() {
-        // this.CardTable("High Card",5,2);
-         
-         // Set up JFrame
-         // Add JPanels for each player to the JFrame...
-         // ...(human player at the bottom, computer player at the top, PlayArea in the middle)
+         this("High Card",5,2);
       }
 
       public CardTable(String title, int numCardsPerHand, int numPlayers) {
-         // Another constructor to set up the game with non-default values
-         // Validate input
-         // See notes from default constructor above
+         super(title);
+         
+         if (numPlayers <= MAX_PLAYERS && numPlayers > 0 
+               && numCardsPerHand <= MAX_CARDS_PER_HAND && numCardsPerHand > 0) {
+            
+            // Set up the main window
+            setLayout(new BorderLayout());
+            setLocationRelativeTo(null);
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            
+            // Set up the computer player JPanel
+            if (numPlayers > 1) {
+               pnlComputerHand = new JPanel();
+               pnlComputerHand.setBorder(BorderFactory.createTitledBorder("Computer Hand"));
+               add(pnlComputerHand,BorderLayout.NORTH);
+            }
+            
+            // Set up the play area JPanel
+            pnlPlayArea = new JPanel();
+            pnlPlayArea.setLayout(new GridLayout(2,numPlayers));
+            pnlPlayArea.setBorder(BorderFactory.createTitledBorder("Playing Area"));
+            pnlPlayArea.setPreferredSize(new Dimension(85 * numCardsPerHand,450));
+            add(pnlPlayArea,BorderLayout.CENTER);
+            
+            // Set up the human player JPanel
+            pnlHumanHand = new JPanel();
+            pnlHumanHand.setBorder(BorderFactory.createTitledBorder("Your Hand"));
+            add(pnlHumanHand,BorderLayout.SOUTH);
+            
+            pack();
+         }
       }
       
+      /**
+       * Gets the number of cards per hand for this CardTable.
+       * @return     the number of cards per hand
+       */
       public int getNumCardsPerHand() {
          return numCardsPerHand;
       }
       
+      /**
+       * Gets the number of players for this CardTable.
+       * @return     the number of players
+       */
       public int getNumPlayers() {
          return numPlayers;
       }
@@ -72,7 +129,7 @@ class CardTable extends JFrame {
    }
 
 class GUICard {
-   private static String[] values = {"2","3","4","5","6","7","8","9","T","J","Q","K","X"};
+   private static String[] values = {"2","3","4","5","6","7","8","9","T","J","Q","K","A","X"};
    private static String[] suits = {"C","D","H","S"};
    private static Icon[][] iconCards = new ImageIcon[values.length][suits.length];
    private static Icon iconBack;
@@ -87,13 +144,13 @@ class GUICard {
     */
    static void loadCardIcons() {
       if (!iconsLoaded) {
-         for (int suit = 0; suit < 4; suit++) {
-            for (int value = 0; value < 14; value++) {
-               iconCards[suit][value] = new ImageIcon("CardsImages/" + intToCardValue(value) + intToCardSuit(suit) + ".gif");
+         for (int suit = 0; suit < suits.length; suit++) {
+            for (int value = 0; value < values.length; value++) {
+               iconCards[value][suit] = new ImageIcon("src/Card Images/" + intToCardValue(value) + intToCardSuit(suit) + ".gif");
             }
          }
-          
-         iconBack = new ImageIcon("CardImages/BK.gif");
+         
+         iconBack = new ImageIcon("src/Card Images/BK.gif");
             
          iconsLoaded = true;
       }
@@ -123,7 +180,7 @@ class GUICard {
     * @return     a String representing the suit, or an empty string if the position was invalid
     */
    static private String intToCardSuit(int k) {
-      if (k > 0 && k < 4) {
+      if (k >= 0 && k < 4) {
          // Return the card suit at the given index
          return suits[k];
       } else {
@@ -138,7 +195,7 @@ class GUICard {
     * @return     a String representing the value, or an empty string if the position was invalid
     */
    static private String intToCardValue(int k) {
-      if (k > 0 && k < 14) {
+      if (k >= 0 && k < 14) {
          // Return the card value at the given index
          return values[k];
       } else {
@@ -156,7 +213,7 @@ class GUICard {
    static private int cardSuitToInt(Card.Suit suit) {
       for (int i = 0; i < suits.length; i++) {
          // Look for the first letter of the suit in the suits array
-         if (suits[i] == suit.name().substring(0,1)) return i;
+         if (suits[i].equals(suit.name().substring(0,1))) return i;
       }
       return -1; // Suit was invalid
    }
@@ -168,7 +225,7 @@ class GUICard {
     */
    static private int cardValueToInt(char value) {
       for (int i = 0; i < values.length; i++) {
-         if (values[i] == String.valueOf(value)) return i;
+         if (values[i].equals(String.valueOf(value))) return i;
       }
       return -1; // Value was invalid
    }
