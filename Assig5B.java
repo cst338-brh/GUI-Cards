@@ -25,7 +25,7 @@ public class Assig5B {
       CardTable table = new CardTable("High Card",NUM_CARDS_PER_HAND,NUM_PLAYERS);
       
       // Set up the card images
-      new GUICard();
+      GUICard.loadCardIcons();
       
       // Create the card deck and shuffle
       Deck deck = new Deck(1);
@@ -72,10 +72,17 @@ class CardTable extends JFrame {
       
       public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
       
-      public CardTable() {
-         this("High Card",5,2);
-      }
-
+      /**
+       * Constructor. Sets up the main JFrame with JPanels for each player 
+       * and a play area. 
+       * If numPlayers is 1, there will only be
+       * a human player. If numPlayers is 2, there will be a human player
+       * and a computer player. Any other value of numPlayers will result in
+       * an empty default JFrame.
+       * @param title            the title for the game window.
+       * @param numCardsPerHand  the number of cards each player will have on the table.
+       * @param numPlayers       the number of players.
+       */
       public CardTable(String title, int numCardsPerHand, int numPlayers) {
          super(title);
          
@@ -112,7 +119,7 @@ class CardTable extends JFrame {
       
       /**
        * Gets the number of cards per hand for this CardTable.
-       * @return     the number of cards per hand
+       * @return     the number of cards per hand.
        */
       public int getNumCardsPerHand() {
          return numCardsPerHand;
@@ -120,7 +127,7 @@ class CardTable extends JFrame {
       
       /**
        * Gets the number of players for this CardTable.
-       * @return     the number of players
+       * @return     the number of players.
        */
       public int getNumPlayers() {
          return numPlayers;
@@ -134,15 +141,11 @@ class GUICard {
    private static Icon[][] iconCards = new ImageIcon[values.length][suits.length];
    private static Icon iconBack;
    private static boolean iconsLoaded = false;
-      
-   public GUICard() {
-      loadCardIcons();
-   }
-   
+         
    /**
     * Loads the card images as Icons. If this has already been done, nothing happens.
     */
-   static void loadCardIcons() {
+   static public void loadCardIcons() {
       if (!iconsLoaded) {
          for (int suit = 0; suit < suits.length; suit++) {
             for (int value = 0; value < values.length; value++) {
@@ -158,8 +161,8 @@ class GUICard {
    
    /**
     * Gets the Icon for the given Card's face.
-    * @param card    the Card to get the Icon for
-    * @return        the card face Icon
+    * @param card    the Card to get the Icon for.
+    * @return        the card face Icon.
     */
    static public Icon getIcon(Card card) {
       // Get the correct card Icon from the array
@@ -168,7 +171,7 @@ class GUICard {
       
    /**
     * Gets the Icon for the card back.  
-    * @return  the card back Icon
+    * @return  the card back Icon.
     */
    static public Icon getBackCardIcon() {
        return iconBack;
@@ -176,8 +179,8 @@ class GUICard {
       
    /**
     * Converts an int into a a card suit. This is useful for looping through all suits. 
-    * @param k    the position of the card suit in the internal suits array
-    * @return     a String representing the suit, or an empty string if the position was invalid
+    * @param k    the position of the card suit in the internal suits array.
+    * @return     a String representing the suit, or an empty string if the position was invalid.
     */
    static private String intToCardSuit(int k) {
       if (k >= 0 && k < 4) {
@@ -191,8 +194,8 @@ class GUICard {
       
    /**
     * Converts an int into a a card value. This is useful for looping through all values. 
-    * @param k    the position of the card value in the internal values array
-    * @return     a String representing the value, or an empty string if the position was invalid
+    * @param k    the position of the card value in the internal values array.
+    * @return     a String representing the value, or an empty string if the position was invalid.
     */
    static private String intToCardValue(int k) {
       if (k >= 0 && k < 14) {
@@ -206,8 +209,8 @@ class GUICard {
       
       /**
     * Converts a card suit into an int representing its position in the internal suits array.
-    * @param value   a Suit enum object from the Card class
-    * @return        the index of the suit in the internal suits array
+    * @param value   a Suit enum object from the Card class.
+    * @return        the index of the suit in the internal suits array.
     * @see Card
     */
    static private int cardSuitToInt(Card.Suit suit) {
@@ -220,8 +223,8 @@ class GUICard {
    
    /**
     * Converts a card value into an int representing its position in the internal values array.
-    * @param value   a char representing the card's value
-    * @return        the index of the value in the internal values array
+    * @param value   a char representing the card's value.
+    * @return        the index of the value in the internal values array.
     */
    static private int cardValueToInt(char value) {
       for (int i = 0; i < values.length; i++) {
@@ -233,7 +236,8 @@ class GUICard {
 }
 
 class Card {
-   public enum Suit { CLUBS, DIAMONDS, HEARTS, SPADES };
+   static public enum Suit { CLUBS, DIAMONDS, HEARTS, SPADES };
+   static private char[] valueRanks = {'2','3','4','5','6','7','8','9','T','J','Q','K','A','X'};
    private char value;
    private Suit suit;
    private boolean errorFlag;
@@ -247,8 +251,8 @@ class Card {
    
    /** 
     * Constructor. Initializes Card with given value and Suit.
-    * @param value   A char from 1-9,T,J,Q,K,A
-    * @param suit    A value from the Suit enum (CLUBS,DIAMONDS,HEARTS,SPADES)
+    * @param value   a char from 1-9,T,J,Q,K,A,'X'.
+    * @param suit    a value from the Suit enum (CLUBS,DIAMONDS,HEARTS,SPADES).
     */
    public Card(char value, Suit suit) {
       set(value,suit);
@@ -256,7 +260,7 @@ class Card {
    
    /** 
     * Provides a String representation of the Card.
-    * @return        A String in the form of "[VALUE] of [SUIT]"
+    * @return        a String in the form of "[VALUE] of [SUIT]".
     */
    public String toString() {
       if (errorFlag == true) {
@@ -269,9 +273,9 @@ class Card {
    /** 
     * Updates the suit and value of the Card after validating data. 
     * The errorFlag is set to true if the provided data is not valid.
-    * @param value   a char from 1-9,T,J,Q,K,A
-    * @param suit    a value from the Suit enum (CLUBS,DIAMONDS,HEARTS,SPADES)
-    * @return        true if valid value and suit were set, otherwise false
+    * @param value   a char from 1-9,T,J,Q,K,A,'X'.
+    * @param suit    a value from the Suit enum (CLUBS,DIAMONDS,HEARTS,SPADES).
+    * return         true if valid value and suit were set, otherwise false.
     */
    public boolean set(char value, Suit suit) {
       boolean isValid = isValid(value,suit);
@@ -288,7 +292,7 @@ class Card {
    
    /**
     * Gets the Card's value.
-    * @return        the Card's value
+    * @return        the Card's value.
     */
    public char getValue() {
       return value;
@@ -296,7 +300,7 @@ class Card {
    
    /**
     * Gets the Card's Suit.
-    * @return        the Card's Suit
+    * @return        the Card's Suit.
     */
    public Suit getSuit() {
       return suit;
@@ -304,7 +308,7 @@ class Card {
    
    /**
     * Gets the status of the errorFlag.
-    * @return        true if Card is invalid, otherwise false
+    * @return        true if Card is invalid, otherwise false.
     */
    public boolean getErrorFlag() {
       return errorFlag;
@@ -312,25 +316,60 @@ class Card {
    
    /**
     * Compares two Card objects for equality.
-    * @param card    a Card to compare to this Card
-    * @return        true if the Cards have equal value and Suit, otherwise false
+    * @param card    a Card to compare to this Card.
+    * @return        true if the Cards have equal value and Suit, otherwise false.
     */
    public boolean equals(Card card) {
       return (this.getSuit() == card.getSuit()) && (this.getValue() == card.getValue());
    }
    
    /**
+    * Sorts an array of Cards by value from smallest to largest. 
+    * This is done using a bubble sort algorithm.
+    * @param cards   the cards to be sorted.
+    */
+   public static void arraySort(Card[] cards) {
+      boolean sorted;
+      
+      // Keep looping through the cards and sorting until a full pass without any swaps.
+      do {
+         sorted = true; // This will be set to false if any cards are out of order.
+         
+         for (int i = 0; i < cards.length - 1; i++) {
+            if (valueIndex(cards[i].getValue()) > valueIndex(cards[i+1].getValue())) {
+               // The first card is larger, swap them
+               Card tempCard = cards[i];
+               cards[i] = cards[i+1];
+               cards[i+1] = tempCard;
+               sorted = false;
+            }
+         }
+      } while (!sorted);
+   }
+   
+   /**
+    * Gets the index of a value in the valueRanks array.
+    * @param value   the value to search for.
+    * @return        the index of the value in the valueRanks array.
+    */
+   private static int valueIndex(char value) {
+      for (int i = 0; i < valueRanks.length; i++) {
+         if (value == valueRanks[i]) return i;
+      }
+      return -1; // Returned if value not found in array
+   }
+   
+   /**
     * A helper method to validate Card data.
-    * @param value   a char representing the value of the card
-    * @param suit    a Suit enum object
-    * @return        true if data is valid, otherwise false
+    * @param value   a char representing the value of the card.
+    * @param suit    a Suit enum object.
+    * @return        true if data is valid, otherwise false.
     */
    private boolean isValid(char value, Suit suit) {
       boolean isValidValue = false;
-      char[] values = {'1','2','3','4','5','6','7','8','9','T','J','Q','K','A'}; // Allowable values
       
-      // Check if value is one of the valid characters
-      for (char v : values) {
+      // Check if value is one of the valid characters using the valueRanks array
+      for (char v : valueRanks) {
          if (Character.toUpperCase(value) == v) {
             isValidValue = true;
             break;
@@ -343,9 +382,9 @@ class Card {
 }
 
 class Hand {
-   public static final int MAX_CARDS = 57;   //Constant set for class to terminate program
-   private Card[] myCards;                   //An array of cards
-   private int numCards;                     //The number of cards in "Hand"
+   public static final int MAX_CARDS = 57;
+   private Card[] myCards;                 
+   private int numCards;                   
    
    /**
     * Default Constructor. Initializes empty Hand.
@@ -364,8 +403,8 @@ class Hand {
    
    /**
     * Adds a given Card to the array if there is space.
-    * @param card    A Card to add to the Hand
-    * @return        True if the Card was added to the Hand, otherwise false
+    * @param card    a Card to add to the Hand.
+    * @return        true if the Card was added to the Hand, otherwise false.
     */
    public boolean takeCard(Card card){
       if(numCards < MAX_CARDS){
@@ -379,9 +418,9 @@ class Hand {
    }
    
    /**
-    * Gets the last Card in the array. Removes the Card from the array
+    * Gets the last Card in the array. Removes the Card from the array.
     * and decrements the counter.
-    * @return        The Card to play
+    * @return        the Card to play.
     */
    public Card playCard(){
       // Create a copy of the Card to be returned
@@ -396,7 +435,7 @@ class Hand {
    
    /**
     * Returns a String representation of the Cards in the Hand, separated by commas.
-    * @return     a String representation of all of the Cards in the Hand
+    * @return     a String representation of all of the Cards in the Hand.
     */
    public String toString(){
       String returnString = "";
@@ -415,7 +454,7 @@ class Hand {
    
    /**
     * Gets the number of Cards in the Hand
-    * @return        The number of Cards in the Hand.
+    * @return        the number of Cards in the Hand.
     */
    public int getNumCards(){
       return numCards;
@@ -423,8 +462,8 @@ class Hand {
    
    /**
     * Gets the Card at a specific position in the Hand.
-    * @param k       The position of the desired Card in the Hand's array
-    * @return        The Card
+    * @param k       the position of the desired Card in the Hand's array.
+    * @return        the Card.
     */
    public Card inspectCard(int k){
       // Return a copy of the Card if the given index is valid
@@ -434,13 +473,19 @@ class Hand {
          // Given index is invalid, generate and return an invalid card
          return new Card('-',Card.Suit.SPADES);
       }
-      
+   }
+   
+   /**
+    * Sorts the Cards in this Hand by value from least to greatest.
+    */
+   public void sort() {
+      Card.arraySort(myCards);
    }
 
 }
 
 class Deck {
-   private static Card[] masterPack = new Card[52];
+   private static Card[] masterPack = new Card[56];
    private Card[] cards;
    private int topCard;
    private int numPacks;
@@ -454,7 +499,7 @@ class Deck {
    
    /**
     * Constructor. Creates a Deck with a given number of packs of Cards.
-    * @param numPacks   the number of packs to use for the Deck
+    * @param numPacks   the number of packs to use for the Deck.
     */
    public Deck (int numPacks) {
       allocateMasterPack();
@@ -492,7 +537,7 @@ class Deck {
    
    /**
     * Deals the top Card of the Deck and removes it from the Deck.
-    * @return     a Card
+    * @return     a Card.
     */
    public Card dealCard(){
       if (cards.length > 0) {
@@ -520,10 +565,10 @@ class Deck {
    /**
     * Gets the Card at the given position in the Deck. Returns an invalid Card if the given position 
     * is invalid.
-    * @param k    the index of the Card to be returned
-    * @return     the Card at the given index, or an "invalid" Card if the index was invalid
+    * @param k    the index of the Card to be returned.
+    * @return     the Card at the given index, or an "invalid" Card if the index was invalid.
     */
-   Card inspectCard(int k) {
+   public Card inspectCard(int k) {
       if (k <= topCard){
          // Index was valid, return a copy of the Card
          return new Card(cards[k].getValue(),cards[k].getSuit());
@@ -533,6 +578,64 @@ class Deck {
          return new Card('X',Card.Suit.SPADES);
       }
    }   
+   
+   /**
+    * Adds a card to this deck. If the given card is already in this deck, it
+    * will not be added.
+    * @param card    a Card to add to this Deck.
+    * @return        true if the card was added, otherwise false.
+    * @see Card
+    */
+   public boolean addCard(Card card) {
+      // Check if the Card is already in the deck.
+      // There can be one of each Card per pack of cards.
+      int cardsFound = 0;
+      for (int i = 0; i <= topCard; i++) {
+         if (card.equals(cards[i])) cardsFound++;
+      }
+      if (cardsFound >= numPacks) return false;
+      
+      // Card wasn't already in this deck, so it can be added to the top
+      topCard++;
+      cards[topCard] = card; 
+      return true;
+   }
+   
+   /**
+    * Removes a given Card from this Deck. The current top Card of this Deck 
+    * takes its place.
+    * @param card       a Card to remove from this Deck.
+    * @return           true if the Card was found and removed, otherwise false.
+    */
+   public boolean removeCard(Card card) {
+      // Find the position of the Card to be removed
+      for (int i = 0; i <= topCard; i++) {
+         if (card.equals(cards[i])) {
+            // The Card was found, put the top Card in this position instead
+            cards[i] = cards[topCard];
+            topCard--;
+            return true;
+         }
+      }
+      return false; // The Card was not found in this Deck
+   }
+   
+   /**
+    * Sorts the Cards in this Deck by value, from lowest to highest. This sorting
+    * is handled by arraySort method of the Card class.
+    * @see Card
+    */
+   public void sort() {
+      Card.arraySort(cards);
+   }
+   
+   /**
+    * Gets the number of cards in this pack.
+    * @return        the number of cards.
+    */
+   public int getNumCards() {
+      return topCard + 1;
+   }
    
    /**
     * Generates a "master pack" of Cards so that Cards don't need to be created repeatedly. If this 
