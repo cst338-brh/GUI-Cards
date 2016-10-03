@@ -48,7 +48,6 @@ class CardTable extends JFrame {
       public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
       
       public CardTable() {
-         System.out.print("It worked!");
         // this.CardTable("High Card",5,2);
          
          // Set up JFrame
@@ -73,28 +72,107 @@ class CardTable extends JFrame {
    }
 
 class GUICard {
-      private static Icon[][] iconCards = new ImageIcon[14][4]; // 14 = A through K + Joker; 4 = suits of cards
-      private static Icon iconBack;
-      static boolean iconsLoaded = false;
+   private static String[] values = {"2","3","4","5","6","7","8","9","T","J","Q","K","X"};
+   private static String[] suits = {"C","D","H","S"};
+   private static Icon[][] iconCards = new ImageIcon[values.length][suits.length];
+   private static Icon iconBack;
+   private static boolean iconsLoaded = false;
       
-      public GUICard() {
-         if (!iconsLoaded) loadCardIcons();
+   public GUICard() {
+      loadCardIcons();
+   }
+   
+   /**
+    * Loads the card images as Icons. If this has already been done, nothing happens.
+    */
+   static void loadCardIcons() {
+      if (!iconsLoaded) {
+         for (int suit = 0; suit < 4; suit++) {
+            for (int value = 0; value < 14; value++) {
+               iconCards[suit][value] = new ImageIcon("CardsImages/" + intToCardValue(value) + intToCardSuit(suit) + ".gif");
+            }
+         }
+          
+         iconBack = new ImageIcon("CardImages/BK.gif");
+            
+         iconsLoaded = true;
       }
+   }
+   
+   /**
+    * Gets the Icon for the given Card's face.
+    * @param card    the Card to get the Icon for
+    * @return        the card face Icon
+    */
+   static public Icon getIcon(Card card) {
+      // Get the correct card Icon from the array
+      return iconCards[cardValueToInt(card.getValue())][cardSuitToInt(card.getSuit())];
+   }
       
-      static void loadCardIcons() {
-         // Basically the same as when we created the cards in phase 1, but now we do it in 2D
-         // Don't forget iconBack
-         // Set iconsLoaded = true when done so cards won't be recreated
+   /**
+    * Gets the Icon for the card back.  
+    * @return  the card back Icon
+    */
+   static public Icon getBackCardIcon() {
+       return iconBack;
+   }
+      
+   /**
+    * Converts an int into a a card suit. This is useful for looping through all suits. 
+    * @param k    the position of the card suit in the internal suits array
+    * @return     a String representing the suit, or an empty string if the position was invalid
+    */
+   static private String intToCardSuit(int k) {
+      if (k > 0 && k < 4) {
+         // Return the card suit at the given index
+         return suits[k];
+      } else {
+         // Index was invalid
+         return "";
       }
+   }
       
-     //static public Icon getIcon(Card card) {
-         // Get the correct card Icon from the array
-      //   return iconCards[valueAsInt(card)][suitAsInt(card)];
-      //}
+   /**
+    * Converts an int into a a card value. This is useful for looping through all values. 
+    * @param k    the position of the card value in the internal values array
+    * @return     a String representing the value, or an empty string if the position was invalid
+    */
+   static private String intToCardValue(int k) {
+      if (k > 0 && k < 14) {
+         // Return the card value at the given index
+         return values[k];
+      } else {
+         // Index was invalid
+         return "";
+      }
+   }
       
-      static public Icon getBackCardIcon() {
-         return iconBack;
-      }      
+      /**
+    * Converts a card suit into an int representing its position in the internal suits array.
+    * @param value   a Suit enum object from the Card class
+    * @return        the index of the suit in the internal suits array
+    * @see Card
+    */
+   static private int cardSuitToInt(Card.Suit suit) {
+      for (int i = 0; i < suits.length; i++) {
+         // Look for the first letter of the suit in the suits array
+         if (suits[i] == suit.name().substring(0,1)) return i;
+      }
+      return -1; // Suit was invalid
+   }
+   
+   /**
+    * Converts a card value into an int representing its position in the internal values array.
+    * @param value   a char representing the card's value
+    * @return        the index of the value in the internal values array
+    */
+   static private int cardValueToInt(char value) {
+      for (int i = 0; i < values.length; i++) {
+         if (values[i] == String.valueOf(value)) return i;
+      }
+      return -1; // Value was invalid
+   }
+
 }
 
 class Card {
