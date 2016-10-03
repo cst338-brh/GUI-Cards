@@ -149,11 +149,11 @@ class GUICard {
       if (!iconsLoaded) {
          for (int suit = 0; suit < suits.length; suit++) {
             for (int value = 0; value < values.length; value++) {
-               iconCards[value][suit] = new ImageIcon("src/Card Images/" + intToCardValue(value) + intToCardSuit(suit) + ".gif");
+               iconCards[value][suit] = new ImageIcon("src/images/" + intToCardValue(value) + intToCardSuit(suit) + ".gif");
             }
          }
          
-         iconBack = new ImageIcon("src/Card Images/BK.gif");
+         iconBack = new ImageIcon("src/images/BK.gif");
             
          iconsLoaded = true;
       }
