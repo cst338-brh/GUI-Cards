@@ -19,8 +19,8 @@ public class Assig5c
 	   static JLabel[] humanLabels = new JLabel[NUM_CARDS_PER_HAND];  
 	   static JLabel[] playedCardLabels  = new JLabel[NUM_PLAYERS]; 
 	   static JLabel[] playLabelText  = new JLabel[NUM_PLAYERS];
-	   static JLabel[][] playerLabels = new JLabel[NUM_PLAYERS][NUM_CARDS_PER_HAND];
-	   
+	   static JButton[][] playerLabels = new JButton[NUM_PLAYERS][NUM_CARDS_PER_HAND];
+	   static JButton[][] playerButtons = new JButton[NUM_PLAYERS][NUM_CARDS_PER_HAND];
 	public static void main(String[] args) 
 	{
 	      int numPacksPerDeck = 1;
@@ -44,11 +44,12 @@ public class Assig5c
 	      
 	      for(int i = 0; i < NUM_PLAYERS; i++){
 	    	for (int j = 0; j < NUM_CARDS_PER_HAND; j++){
-	    		playerLabels[i][j] = new JLabel(GUICard.getIcon(highCardGame.getHand(i).inspectCard(j)));
+	    		playerLabels[i][j] = new JButton(GUICard.getIcon(highCardGame.getHand(i).inspectCard(j)));
+	    		playerButtons[i][j] = new JButton("Card:" +i+j);
 	    		if (i == 0){
 	    			table.pnlHumanHand.add(playerLabels[i][j]);
 	    		}
-	    		else {
+	    		else {	
 	    			table.pnlComputerHand.add(playerLabels[i][j]);
 	    		}
 	    	}
@@ -59,7 +60,7 @@ public class Assig5c
 	      table.pnlPlayArea.add(playLabelText[0]);
 	      table.pnlPlayArea.add(playLabelText[1]);
 	      
-	      
+	      //testing card playing
 	      Card playerPlayed = highCardGame.playCard(0,2);
 	      Card computerPlayed = highCardGame.playCard(1,2);
 	      table.pnlHumanHand.remove(2);
@@ -73,6 +74,13 @@ public class Assig5c
 	      
 	      table.setVisible(true); 
 	     
+	      
+	      //starting code for GAME LOOP
+	      for (int i = NUM_CARDS_PER_HAND-1; i >= 0; i++){
+	    	  
+	    	  int cptChoice = (int) ((Math.random() * i));
+	    	  
+	      }
 	}
 	
 
