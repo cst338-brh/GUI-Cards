@@ -91,7 +91,6 @@ class CardTable extends JFrame {
             
             // Set up the main window
             setLayout(new BorderLayout());
-            setLocationRelativeTo(null);
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             
             // Set up the computer player JPanel
@@ -114,6 +113,7 @@ class CardTable extends JFrame {
             add(pnlHumanHand,BorderLayout.SOUTH);
             
             pack();
+            setLocationRelativeTo(null);
          }
       }
       
@@ -656,5 +656,3 @@ class Deck {
       }
    }
 }
-
-
