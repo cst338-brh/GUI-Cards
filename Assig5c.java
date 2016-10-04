@@ -57,8 +57,12 @@ public class Assig5C
          // The human's cards (face-up)
          humanButtons[i] = new JButton(GUICard.getIcon(highCardGame.getHand(1).inspectCard(i)));
          humanButtons[i].setMargin(new Insets(1,1,1,1));
-         humanButtons[i].setActionCommand(Integer.toString(i));
-         humanButtons[i].addActionListener(table);
+         final int buttonNumber = i;   // For button's action listener
+         humanButtons[i].addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+               playCard(buttonNumber);
+            }
+         });
          table.pnlHumanHand.add(humanButtons[i]);
       }
       
@@ -66,7 +70,7 @@ public class Assig5C
       table.setVisible(true);    
    }
    
-   public static void playCard(String k) {
+   public static void playCard(int k) {
       // TODO: Put the game code here that will be called every time the player clicks a card
       System.out.println(k);
    }
@@ -766,7 +770,7 @@ public class Assig5C
    
    }
    
-   private static class CardTable extends JFrame implements ActionListener {
+   private static class CardTable extends JFrame {
       static final int MAX_CARDS_PER_HAND = 56;
       static final int MAX_PLAYERS = 2;
       
@@ -834,10 +838,6 @@ public class Assig5C
        */
       public int getNumPlayers() {
          return numPlayers;
-      }
-      
-      public void actionPerformed(ActionEvent e) {
-         playCard(e.getActionCommand());
       }
    }
    
