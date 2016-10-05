@@ -4,7 +4,7 @@
  * Randall Rood
  * CST 338
  * 10/1/16
- * Module 5: GUI Cards - Phase Two
+ * Module 5: GUI Cards - Phase Three
  */
 
 import javax.swing.*;
@@ -14,39 +14,64 @@ import java.lang.Math;
 
 public class Assig5C
 {
-   static final int NUM_CARDS_PER_HAND = 7;
-   static final int NUM_PLAYERS = 2;
-   static JLabel[] computerLabels = new JLabel[NUM_CARDS_PER_HAND];
-   static JButton[] humanButtons = new JButton[NUM_CARDS_PER_HAND];  
-   static JLabel[] playedCardLabels  = new JLabel[NUM_PLAYERS]; 
-   static JLabel[] playLabelText  = new JLabel[NUM_PLAYERS]; 
+   static final private int NUM_CARDS_PER_HAND = 7;
+   static final private int NUM_PLAYERS = 2;
+   static private JLabel[] playedCardLabels, playLabelText, computerLabels; 
+   static private JButton[] humanButtons;
+   static private JButton messageButton;
+   static private JLabel messageLabel;
+   static private CardTable table;
+   static private CardGameFramework highCardGame;
+   static final private int computer = 0;
+   static final private int human = 1;
+   static private boolean gameOver;
+   static private int computerCardIndex;
+   static private int firstPlayer = 1;
+   static private int humanScore = 0;
+   static private int computerScore = 0;
+   static private boolean cardChoosable = true;
 
-   public static void main(String[] args)
-   {
+   public static void main(String[] args) {
       // Set up the card images
       GUICard.loadCardIcons();
       
       // Create the game window
-      CardTable table = new CardTable("High Card",NUM_CARDS_PER_HAND,NUM_PLAYERS);
-      playLabelText[0] = new JLabel("Computer",JLabel.CENTER);
-      playLabelText[1] = new JLabel("You",JLabel.CENTER);
-      table.pnlPlayArea.add(playLabelText[0]);
-      table.pnlPlayArea.add(playLabelText[1]);
+      table = new CardTable("High Card",NUM_CARDS_PER_HAND,NUM_PLAYERS);
       
+      resetGame(); // Sets up a fresh game and starts it
+      
+      // Show the window
+      table.setVisible(true);          
+   }
+   
+   /**
+    * Sets up the High Card game and components for a new deck/deal.
+    */
+   public static void resetGame() {      
       // Set up the game
       int numPacksPerDeck = 1;
       int numJokersPerPack = 0;
       int numUnusedCardsPerPack = 0;
       Card[] unusedCardsPerPack = null;
 
-      CardGameFramework highCardGame = new CardGameFramework( 
+      highCardGame = new CardGameFramework( 
             numPacksPerDeck, numJokersPerPack,  
             numUnusedCardsPerPack, unusedCardsPerPack, 
             NUM_PLAYERS, NUM_CARDS_PER_HAND);
       
+      // Reset scores and game status
+      gameOver = false;
+      cardChoosable = true;
+      humanScore = 0;
+      computerScore = 0;
+      
       // Start the game         
       highCardGame.newGame();
       highCardGame.deal();
+      
+      // Reset the players' card image arrays
+      computerLabels = new JLabel[NUM_CARDS_PER_HAND];
+      humanButtons = new JButton[NUM_CARDS_PER_HAND];
       
       // Display the players' cards on the table
       for (int i = 0; i < NUM_CARDS_PER_HAND; i++) {
@@ -55,24 +80,219 @@ public class Assig5C
          table.pnlComputerHand.add(computerLabels[i]);
          
          // The human's cards (face-up)
-         humanButtons[i] = new JButton(GUICard.getIcon(highCardGame.getHand(1).inspectCard(i)));
+         humanButtons[i] = new JButton(GUICard.getIcon(highCardGame.getHand(human).inspectCard(i)));
          humanButtons[i].setMargin(new Insets(1,1,1,1));
-         final int buttonNumber = i;   // For button's action listener
+         humanButtons[i].setActionCommand(Integer.toString(i));   // For action listener to know which button this is
          humanButtons[i].addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-               playCard(buttonNumber);
+               if (cardChoosable){
+                  playRound(Integer.parseInt(e.getActionCommand()));
+               }
             }
          });
+         
          table.pnlHumanHand.add(humanButtons[i]);
       }
       
-      // Show the window
-      table.setVisible(true);    
+      // Display blank cards in the play area panel
+      playedCardLabels = new JLabel[NUM_PLAYERS];
+      playedCardLabels[0] = new JLabel();
+      playedCardLabels[1] = new JLabel();
+      playLabelText = new JLabel[NUM_PLAYERS];
+      playLabelText[0] = new JLabel("Computer: " + computerScore,JLabel.CENTER);
+      playLabelText[1] = new JLabel("You: " + humanScore,JLabel.CENTER);
+      table.pnlPlayArea.add(playedCardLabels[0]);
+      table.pnlPlayArea.add(playedCardLabels[1]);
+      table.pnlPlayArea.add(playLabelText[0]);
+      table.pnlPlayArea.add(playLabelText[1]);
+      
+      // Set the round winner messages
+      // Human won the round
+      messageLabel = new JLabel();
+      // Computer won round, create a button for them to start the next round
+      messageButton = new JButton("I win this round! Click here to start the next round.");
+      messageButton.addActionListener(new ActionListener() {
+         public void actionPerformed(ActionEvent e) {
+            if (cardChoosable == false){  
+               cardChoosable = true;
+               playRound(-1);
+            }
+         }
+      });
+      
+      // Reset the turn; human always plays first
+      firstPlayer = human;
+      
+      // Redraw the panels
+      updateTable();
+      
+      // Set the human-wins message. This is set after the table is updated so it won't show at the start of the game.
+      messageLabel = new JLabel("You won this round! Select a card to start the next round.");
+   }
+
+ 
+  /**
+   * Plays a round of the game. If humanCardIndex is -1, the computer player will select a card first and 
+   * this method will not continue. When the human player picks a card and humanCardIndex is not -1, this method will
+   * calculate the winner. The cards will then be removed from the players' hands and displays and then will be 
+   * displayed in the center play area. Finally, this method will call updateTable to redraw the game window.
+   * @param humanCardIndex   the index of the card that the human player is playing; -1 if the computer should go first
+   */
+   public static void playRound(int humanCardIndex) {
+      computerPlay(humanCardIndex);
+      
+      if (humanCardIndex != -1) {
+         // Get Cards
+         Card computerCard = highCardGame.playCard(computer,computerCardIndex);
+         Card humanCard = highCardGame.playCard(human,humanCardIndex);
+         
+         // Determine the winner
+         if (Card.valueIndex(humanCard.getValue()) > Card.valueIndex(computerCard.getValue())) {
+            // Human wins
+            humanScore++;
+            firstPlayer = human;
+         } else if (Card.valueIndex(humanCard.getValue()) < Card.valueIndex(computerCard.getValue())) {
+            // Computer wins
+            computerScore++;
+            cardChoosable = false;
+            firstPlayer = computer;
+         } else {
+            // Tie
+            if (firstPlayer == human) {
+               // Computer wins
+               computerScore++;
+               cardChoosable = false;
+               firstPlayer = computer;
+            } else {
+               // Human wins
+               humanScore++;
+               firstPlayer = human;
+            }
+         }
+         
+         // Update the play area labels
+         playedCardLabels[0] = new JLabel(GUICard.getIcon(computerCard));
+         playedCardLabels[1] = new JLabel(GUICard.getIcon(humanCard));
+         playLabelText[0] = new JLabel("Computer: " + computerScore,JLabel.CENTER);
+         playLabelText[1] = new JLabel("You: " + humanScore,JLabel.CENTER);
+         
+         // Remove the computer's card from their labels
+         for (int i = computerCardIndex; i < computerLabels.length - 1; i++) {
+            computerLabels[i] = computerLabels[i+1];
+         }
+      
+         computerLabels[computerLabels.length - 1] = null;
+         
+         // Remove the human's card from their buttons
+         for (int j = humanCardIndex; j < humanButtons.length - 1; j++) {
+            humanButtons[j] = humanButtons[j + 1];
+            
+            // Update the action command for button indexing
+            if (humanButtons[j] != null) humanButtons[j].setActionCommand(Integer.toString(j));
+         }
+         humanButtons[humanButtons.length-1] = null;
+         
+         // Check if the game is over (hands are empty)
+         if (humanButtons[0] == null){
+            // The game is over, update the message button
+            gameOver = true;
+            messageButton = new JButton();
+            
+            if (humanScore > computerScore) {
+               messageButton.setText("You won! Click to play again.");
+            } else {
+               messageButton.setText("Sorry, you lost! Click to play again.");
+            }
+            
+            messageButton.addActionListener(new ActionListener() {
+               public void actionPerformed(ActionEvent e)
+               {
+                  resetGame();
+               }
+            });
+         }
+         
+         updateTable();
+      }
    }
    
-   public static void playCard(int k) {
-      // TODO: Put the game code here that will be called every time the player clicks a card
-      System.out.println(k);
+   /**
+   * Re-populates and paints the panels in the game window. 
+   */
+   private static void updateTable() {
+      // Update the play area panel
+      table.pnlPlayArea.removeAll();
+      for (JLabel label : playedCardLabels) table.pnlPlayArea.add(label);
+      for (JLabel label : playLabelText) table.pnlPlayArea.add(label);
+      
+      // Update the message area panel
+      table.pnlMessageArea.removeAll();
+      if (messageButton != null && (firstPlayer == computer || gameOver)) {
+         // Show a button to start the next round if the computer plays first or the game is over
+         table.pnlMessageArea.add(messageButton);
+      } else if (messageLabel != null) {
+         // Show a message label that states that the human won
+         table.pnlMessageArea.add(messageLabel);
+      }
+      
+      // Update the human and computer hand panels
+      table.pnlHumanHand.removeAll();
+      table.pnlComputerHand.removeAll();
+      for (JLabel label : computerLabels) if (label != null) table.pnlComputerHand.add(label);
+      for (JButton button : humanButtons) if (button != null) table.pnlHumanHand.add(button);           
+      
+      // Redraw the table
+      table.pnlPlayArea.revalidate();
+      table.pnlMessageArea.revalidate();
+      table.pnlComputerHand.revalidate();
+      table.pnlHumanHand.revalidate();
+      table.validate();
+      table.repaint();
+   }
+   
+   /**
+    * Lets the computer player choose a card. If the computer is playing first in a round,
+    * it will always choose its highest card. If the computer is playing second in a round,
+    * it will attempt to choose the lowest-value card that can win. If it does not have a winning card, 
+    * it will choose its lowest card.
+    * @param value   the value of the card that was played first, or -1 if the computer is playing first.
+    * @return        the index of the card to be played, or -1 if the computer has no cards.
+    */
+   public static void computerPlay(int humanCardIndex) {
+      // Get the computer's hand and the number of cards in the computer's hand
+      Hand compHand = highCardGame.getHand(computer);
+      int numCards = compHand.getNumCards();
+      
+      if (numCards > 0) {
+         if (humanCardIndex == -1) {
+            // The computer is playing first, pick the highest card
+            computerCardIndex = numCards - 1;    
+            
+            // Show the computer's card
+            playedCardLabels[computer] = new JLabel(GUICard.getIcon(highCardGame.getHand(computer).inspectCard(computerCardIndex)));
+            playedCardLabels[human] = new JLabel();
+            
+            updateTable();
+         } else {
+            // The computer is playing 2nd, pick the lowest card that can win
+            int humanValue = Card.valueIndex(highCardGame.getHand(human).inspectCard(humanCardIndex).getValue());
+            // If no card can win, just pick the lowest card
+            computerCardIndex = 0;
+            for (int i = 0; i < numCards; i++) {
+               if (Card.valueIndex(compHand.inspectCard(i).getValue()) > humanValue) {
+                  computerCardIndex = i;
+                  break;
+               }
+            }
+            
+            // Go back to the round
+            //playRound(humanCardIndex);
+         }        
+
+      } else {
+         // The computer has no cards
+         computerCardIndex = -1;
+         }
    }
   
    private static class CardGameFramework
@@ -93,8 +313,8 @@ public class Assig5C
                                          // use cards 2-8 of any suit
    
       public CardGameFramework( int numPacks, int numJokersPerPack,
-          int numUnusedCardsPerPack,  Card[] unusedCardsPerPack,
-          int numPlayers, int numCardsPerHand)
+            int numUnusedCardsPerPack,  Card[] unusedCardsPerPack,
+            int numPlayers, int numCardsPerHand)
       {
          int k;
       
@@ -216,18 +436,16 @@ public class Assig5C
        {
           // returns bad card if either argument is bad
       if (playerIndex < 0 ||  playerIndex > numPlayers - 1 ||
-          cardIndex < 0 || cardIndex > numCardsPerHand - 1)
-      {
+          cardIndex < 0 || cardIndex > numCardsPerHand - 1) {
          //Creates a card that does not work
          return new Card('M', Card.Suit.SPADES);      
-          }
+      }
        
           // return the card played
           return hand[playerIndex].playCard(cardIndex);
        
        }
-      
-      
+         
        boolean takeCard(int playerIndex)
        {
           // returns false if either argument is bad
@@ -240,7 +458,6 @@ public class Assig5C
       
            return hand[playerIndex].takeCard(deck.dealCard());
        }
-   
    }
    
    private static class Card {
@@ -273,7 +490,7 @@ public class Assig5C
       public String toString() {
          if (errorFlag == true) {
             return "[ invalid ]";
-         } else {
+         }else {
             return value + " of " + suit;
          }
       }
@@ -430,20 +647,42 @@ public class Assig5C
        * and decrements the counter.
        * @return        the Card to play.
        */
-      public Card playCard( int returnCard){
+      public Card playCard() {
+         // Create a copy of the Card to be returned
+         Card nextCard = new Card(myCards[numCards-1].getValue(), myCards[numCards-1].getSuit());
          
-         Card retCard = null; 
+         // Remove the Card from the array and decrement the card count
+         myCards[numCards-1] = null;
+         numCards--;
          
-         if (returnCard < numCards-1){
-            retCard = new Card(myCards[returnCard].getValue(), myCards[returnCard].getSuit());
-            for (int i = returnCard; i < numCards; i++){
+         return nextCard;
+      }
+      
+      /**
+       * Gets the Card at the given index and removes it from the array. This also decrements
+       * the counter. If the given index is invalid, returns an invalid card and does not remove
+       * anything.
+       * @param k    the index of the Card to be removed and returned
+       * @return     a copy of the Card
+       */
+      public Card playCard(int k) {
+         if (k < numCards) {
+            // Index k is valid, remove card from array, decrement card count, and return card
+            Card returnCard = new Card(myCards[k].getValue(), myCards[k].getSuit());
+            
+            // Move cards down to fill in "space" of removed card
+            for (int i = k; i < numCards - 1; i++) {
                myCards[i] = myCards[i+1];
-               myCards[i+1] = null;
             }
+            myCards[numCards - 1] = null;
+            
             numCards--;
+            
+            return returnCard;
+         } else {
+            // Index k was invalid, return invalid card
+            return new Card('0',Card.Suit.SPADES);
          }
-         
-         return retCard;
       }
       
       /**
@@ -700,8 +939,16 @@ public class Assig5C
        * @return        the card face Icon.
        */
       static public Icon getIcon(Card card) {
+         
+         int cardVal = cardValueToInt(card.getValue());
+         int suitVal = cardSuitToInt(card.getSuit());
+         
          // Get the correct card Icon from the array
-         return iconCards[cardValueToInt(card.getValue())][cardSuitToInt(card.getSuit())];
+         if (cardVal <= 13 && cardVal >= 0 && suitVal >= 0 && suitVal <= 3) {
+            return iconCards[cardValueToInt(card.getValue())][cardSuitToInt(card.getSuit())];
+         }
+         else
+            return iconBack;
       }
          
       /**
@@ -777,7 +1024,7 @@ public class Assig5C
       private int numCardsPerHand;
       private int numPlayers;
       
-      public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
+      public JPanel pnlComputerHand, pnlHumanHand, pnlCenter, pnlPlayArea, pnlMessageArea;
       
       /**
        * Constructor. Sets up the main JFrame with JPanels for each player 
@@ -807,12 +1054,24 @@ public class Assig5C
                add(pnlComputerHand,BorderLayout.NORTH);
             }
             
+            // Set up the center area JPanel to manage the play/message areas
+            pnlCenter = new JPanel();
+            pnlCenter.setLayout(new BorderLayout());
+            add(pnlCenter,BorderLayout.CENTER);
+            
             // Set up the play area JPanel
             pnlPlayArea = new JPanel();
-            pnlPlayArea.setLayout(new GridLayout(2,numPlayers));
+            pnlPlayArea.setLayout(new GridLayout(3,numPlayers));
             pnlPlayArea.setBorder(BorderFactory.createTitledBorder("Playing Area"));
-            pnlPlayArea.setPreferredSize(new Dimension(90 * numCardsPerHand,450));
-            add(pnlPlayArea,BorderLayout.CENTER);
+            pnlPlayArea.setPreferredSize(new Dimension(90 * numCardsPerHand,600));
+            //add(pnlPlayArea,BorderLayout.CENTER);
+            pnlCenter.add(pnlPlayArea,BorderLayout.CENTER);
+            
+            // Set up a message area JPanel
+            pnlMessageArea = new JPanel();
+            pnlMessageArea.setPreferredSize(new Dimension(90 * numCardsPerHand,50));
+            //add(pnlMessageArea,BorderLayout.LINE_END);
+            pnlCenter.add(pnlMessageArea,BorderLayout.SOUTH);
             
             // Set up the human player JPanel
             pnlHumanHand = new JPanel();
@@ -840,5 +1099,4 @@ public class Assig5C
          return numPlayers;
       }
    }
-   
 }
