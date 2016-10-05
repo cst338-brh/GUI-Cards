@@ -13,12 +13,12 @@ import java.lang.Math;
 
 public class Assig5B {
    
-   static final int NUM_CARDS_PER_HAND = 7;
-   static final int NUM_PLAYERS = 2;
-   static JLabel[] computerLabels = new JLabel[NUM_CARDS_PER_HAND];
-   static JLabel[] humanLabels = new JLabel[NUM_CARDS_PER_HAND];  
-   static JLabel[] playedCardLabels  = new JLabel[NUM_PLAYERS]; 
-   static JLabel[] playLabelText  = new JLabel[NUM_PLAYERS]; 
+   static final private int NUM_CARDS_PER_HAND = 7;
+   static final private int NUM_PLAYERS = 2;
+   static private JLabel[] computerLabels = new JLabel[NUM_CARDS_PER_HAND];
+   static private JLabel[] humanLabels = new JLabel[NUM_CARDS_PER_HAND];  
+   static private JLabel[] playedCardLabels  = new JLabel[NUM_PLAYERS]; 
+   static private JLabel[] playLabelText  = new JLabel[NUM_PLAYERS]; 
 
    public static void main(String[] args) {      
       // Create the game window
@@ -64,76 +64,76 @@ public class Assig5B {
 
 
    private static class CardTable extends JFrame {
-         static final int MAX_CARDS_PER_HAND = 56;
-         static final int MAX_PLAYERS = 2;
+      static final int MAX_CARDS_PER_HAND = 56;
+      static final int MAX_PLAYERS = 2;
+      
+      private int numCardsPerHand;
+      private int numPlayers;
+      
+      public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
+      
+      /**
+       * Constructor. Sets up the main JFrame with JPanels for each player 
+       * and a play area. 
+       * If numPlayers is 1, there will only be
+       * a human player. If numPlayers is 2, there will be a human player
+       * and a computer player. Any other value of numPlayers will result in
+       * an empty default JFrame.
+       * @param title            the title for the game window.
+       * @param numCardsPerHand  the number of cards each player will have on the table.
+       * @param numPlayers       the number of players.
+       */
+      public CardTable(String title, int numCardsPerHand, int numPlayers) {
+         super(title);
          
-         private int numCardsPerHand;
-         private int numPlayers;
-         
-         public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
-         
-         /**
-          * Constructor. Sets up the main JFrame with JPanels for each player 
-          * and a play area. 
-          * If numPlayers is 1, there will only be
-          * a human player. If numPlayers is 2, there will be a human player
-          * and a computer player. Any other value of numPlayers will result in
-          * an empty default JFrame.
-          * @param title            the title for the game window.
-          * @param numCardsPerHand  the number of cards each player will have on the table.
-          * @param numPlayers       the number of players.
-          */
-         public CardTable(String title, int numCardsPerHand, int numPlayers) {
-            super(title);
+         if (numPlayers <= MAX_PLAYERS && numPlayers > 0 
+               && numCardsPerHand <= MAX_CARDS_PER_HAND && numCardsPerHand > 0) {
             
-            if (numPlayers <= MAX_PLAYERS && numPlayers > 0 
-                  && numCardsPerHand <= MAX_CARDS_PER_HAND && numCardsPerHand > 0) {
-               
-               // Set up the main window
-               setLayout(new BorderLayout());
-               setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-               
-               // Set up the computer player JPanel
-               if (numPlayers > 1) {
-                  pnlComputerHand = new JPanel();
-                  pnlComputerHand.setBorder(BorderFactory.createTitledBorder("Computer Hand"));
-                  add(pnlComputerHand,BorderLayout.NORTH);
-               }
-               
-               // Set up the play area JPanel
-               pnlPlayArea = new JPanel();
-               pnlPlayArea.setLayout(new GridLayout(2,numPlayers));
-               pnlPlayArea.setBorder(BorderFactory.createTitledBorder("Playing Area"));
-               pnlPlayArea.setPreferredSize(new Dimension(85 * numCardsPerHand,450));
-               add(pnlPlayArea,BorderLayout.CENTER);
-               
-               // Set up the human player JPanel
-               pnlHumanHand = new JPanel();
-               pnlHumanHand.setBorder(BorderFactory.createTitledBorder("Your Hand"));
-               add(pnlHumanHand,BorderLayout.SOUTH);
-               
-               pack();
-               setLocationRelativeTo(null);
+            // Set up the main window
+            setLayout(new BorderLayout());
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            
+            // Set up the computer player JPanel
+            if (numPlayers > 1) {
+               pnlComputerHand = new JPanel();
+               pnlComputerHand.setBorder(BorderFactory.createTitledBorder("Computer Hand"));
+               add(pnlComputerHand,BorderLayout.NORTH);
             }
+            
+            // Set up the play area JPanel
+            pnlPlayArea = new JPanel();
+            pnlPlayArea.setLayout(new GridLayout(2,numPlayers));
+            pnlPlayArea.setBorder(BorderFactory.createTitledBorder("Playing Area"));
+            pnlPlayArea.setPreferredSize(new Dimension(85 * numCardsPerHand,450));
+            add(pnlPlayArea,BorderLayout.CENTER);
+            
+            // Set up the human player JPanel
+            pnlHumanHand = new JPanel();
+            pnlHumanHand.setBorder(BorderFactory.createTitledBorder("Your Hand"));
+            add(pnlHumanHand,BorderLayout.SOUTH);
+            
+            pack();
+            setLocationRelativeTo(null);
          }
-         
-         /**
-          * Gets the number of cards per hand for this CardTable.
-          * @return     the number of cards per hand.
-          */
-         public int getNumCardsPerHand() {
-            return numCardsPerHand;
-         }
-         
-         /**
-          * Gets the number of players for this CardTable.
-          * @return     the number of players.
-          */
-         public int getNumPlayers() {
-            return numPlayers;
-         }
-         
       }
+      
+      /**
+       * Gets the number of cards per hand for this CardTable.
+       * @return     the number of cards per hand.
+       */
+      public int getNumCardsPerHand() {
+         return numCardsPerHand;
+      }
+      
+      /**
+       * Gets the number of players for this CardTable.
+       * @return     the number of players.
+       */
+      public int getNumPlayers() {
+         return numPlayers;
+      }
+      
+   }
 
    private static class GUICard {
       private static String[] values = {"2","3","4","5","6","7","8","9","T","J","Q","K","A","X"};
